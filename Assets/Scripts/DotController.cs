@@ -14,7 +14,8 @@ public class DotController : MonoBehaviour
     public int targetX;
     public int targetY;
     public bool isMatched = false;
-    
+
+    private MatchFinder matchFinder; 
     private Board board;
     private GameObject otherDot;
     private Vector2 firstTouchPosition;
@@ -27,6 +28,7 @@ public class DotController : MonoBehaviour
     void Start()
     {
         board = FindObjectOfType<Board>();
+        matchFinder = FindObjectOfType<MatchFinder>();
         /*targetX = (int)transform.position.x;
         targetY = (int)transform.position.y;
         row = targetY;
@@ -36,7 +38,7 @@ public class DotController : MonoBehaviour
     }
     void Update()
     {
-        FindMatches();
+        //FindMatches();
         if (isMatched)
         {
             SpriteRenderer mySprite = GetComponent<SpriteRenderer>();
@@ -54,6 +56,7 @@ public class DotController : MonoBehaviour
             {
                 board.allDots[column, row] = this.gameObject;
             }
+            matchFinder.FindAllMatches();
         }
         else
         {
@@ -71,6 +74,7 @@ public class DotController : MonoBehaviour
             {
                 board.allDots[column, row] = this.gameObject;
             }
+            matchFinder.FindAllMatches();
         }
         else
         {
@@ -82,7 +86,7 @@ public class DotController : MonoBehaviour
 
     public IEnumerator CheckMoveCoroutine()
     {
-        yield return new WaitForSeconds(.5f);
+        yield return new WaitForSeconds(.4f);
         if (otherDot != null)
         {
             if (!isMatched && !otherDot.GetComponent<DotController>().isMatched)
@@ -91,6 +95,8 @@ public class DotController : MonoBehaviour
                 otherDot.GetComponent<DotController>().column = column;
                 row = previousRow;
                 column = previousColumn;
+                yield return new WaitForSeconds(.5f);
+                board.currentState = GameState.MOVE;
             }else
             {
                 board.DestroyMatches();
@@ -102,14 +108,20 @@ public class DotController : MonoBehaviour
 
     private void OnMouseDown()
     {
-        firstTouchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        if (board.currentState == GameState.MOVE)
+        {
+            firstTouchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        }
         //Debug.Log(firstTouchPosition);
     }
 
     private void OnMouseUp()
     {
-        finalTouchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        CalculateAngle();
+        if (board.currentState == GameState.MOVE)
+        {
+            finalTouchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            CalculateAngle();
+        }
     }
 
     private void CalculateAngle()
@@ -121,6 +133,11 @@ public class DotController : MonoBehaviour
                 finalTouchPosition.x - firstTouchPosition.x) * 180 / Mathf.PI ;
             //Debug.Log(swipeAngle);
             MovePieces();
+            board.currentState = GameState.WAIT;
+        }
+        else
+        {
+            board.currentState = GameState.MOVE;
         }
     }
 
@@ -162,13 +179,14 @@ public class DotController : MonoBehaviour
         StartCoroutine(CheckMoveCoroutine());
     }
 
+    //Old matchfinder, unused currently
     private void FindMatches()
     {
         if (column > 0 && column < board.width - 1)
         {
             GameObject leftDot1 = board.allDots[column - 1, row];
             GameObject rightDot1 = board.allDots[column + 1, row];
-            if (leftDot1.tag == this.gameObject.tag && rightDot1.tag == this.gameObject.tag)
+            if (leftDot1.CompareTag(this.gameObject.tag) && rightDot1.CompareTag(this.gameObject.tag))
             {
                 leftDot1.GetComponent<DotController>().isMatched = true;
                 rightDot1.GetComponent<DotController>().isMatched = true;
@@ -179,7 +197,7 @@ public class DotController : MonoBehaviour
         {
             GameObject topDot1 = board.allDots[column, row + 1 ];
             GameObject downDot1 = board.allDots[column, row - 1];
-            if (topDot1.tag == this.gameObject.tag && downDot1.tag == this.gameObject.tag)
+            if (topDot1.CompareTag(this.gameObject.tag) && downDot1.CompareTag(this.gameObject.tag))
             {
                 topDot1.GetComponent<DotController>().isMatched = true;
                 downDot1.GetComponent<DotController>().isMatched = true;

@@ -2,20 +2,29 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum GameState
+{
+    WAIT,
+    MOVE
+}
+
 public class Board : MonoBehaviour
 {
+    public GameState currentState = GameState.MOVE;
     public int width;
     public int height;
     public int offset;
     public GameObject tilePrefab;
-    private BackgroundTile[,] allTiles;
     public GameObject[] dots;
     public GameObject[,] allDots;
+    private BackgroundTile[,] allTiles;
+    private MatchFinder matchFinder;
 
     
     // Start is called before the first frame update
     void Start()
     {
+        matchFinder = FindObjectOfType<MatchFinder>();
         allTiles = new BackgroundTile[width, height];
         allDots = new GameObject[width, height];
         SetUp();
@@ -75,6 +84,7 @@ public class Board : MonoBehaviour
     {
         if (allDots[column,row].GetComponent<DotController>().isMatched)
         {
+            matchFinder.currentMatches.Remove(allDots[column, row]);
             Destroy(allDots[column,row]);
             allDots[column, row] = null;
         }
@@ -159,10 +169,14 @@ public class Board : MonoBehaviour
     {
         RefillBoard();
         yield return new WaitForSeconds(.5f);
-
+        
         while (MatchesOnBoard())
         {
-            yield return new WaitForSeconds(.5f);
+            yield return new WaitForSeconds(.2f);
+            DestroyMatches();
         }
+        yield return new WaitForSeconds(.5f);
+        currentState = GameState.MOVE;
+
     }
 }
