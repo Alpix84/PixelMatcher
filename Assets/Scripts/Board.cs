@@ -17,6 +17,8 @@ public class Board : MonoBehaviour
     public GameObject tilePrefab;
     public GameObject[] dots;
     public GameObject[,] allDots;
+    public DotController currentDot;
+    public GameObject destroyEffect;
     private BackgroundTile[,] allTiles;
     private MatchFinder matchFinder;
 
@@ -84,7 +86,15 @@ public class Board : MonoBehaviour
     {
         if (allDots[column,row].GetComponent<DotController>().isMatched)
         {
+            //Creating rockets based on length of matches
+            if (matchFinder.currentMatches.Count == 4 || matchFinder.currentMatches.Count == 7)
+            {
+                matchFinder.CheckRockets();
+            }
+            
             matchFinder.currentMatches.Remove(allDots[column, row]);
+            GameObject particle = Instantiate(destroyEffect, allDots[column, row].transform.position, Quaternion.identity);
+            Destroy(particle, .5f);
             Destroy(allDots[column,row]);
             allDots[column, row] = null;
         }
@@ -142,6 +152,7 @@ public class Board : MonoBehaviour
                     allDots[i, j] = piece;
                     piece.GetComponent<DotController>().row = j;
                     piece.GetComponent<DotController>().column = i;
+                    piece.transform.parent = this.transform;
                 }
             }
         }
@@ -168,14 +179,16 @@ public class Board : MonoBehaviour
     private IEnumerator FillBoardCoroutine()
     {
         RefillBoard();
-        yield return new WaitForSeconds(.5f);
+        yield return new WaitForSeconds(.3f);
         
         while (MatchesOnBoard())
         {
-            yield return new WaitForSeconds(.2f);
+            yield return new WaitForSeconds(.3f);
             DestroyMatches();
         }
-        yield return new WaitForSeconds(.5f);
+        matchFinder.currentMatches.Clear();
+        currentDot = null;
+        yield return new WaitForSeconds(1f);
         currentState = GameState.MOVE;
 
     }

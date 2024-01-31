@@ -14,21 +14,36 @@ public class DotController : MonoBehaviour
     public int targetX;
     public int targetY;
     public bool isMatched = false;
+    
+    [Header("Swipe Variables")]
+    public float swipeAngle = 0;
+    public float swipeResist = 1f;
 
+    [Header("Powerup Variables")] 
+    public bool isColorBomb;
+    public bool isColumnRocket;
+    public bool isRowRocket;
+    public GameObject rowRocket;
+    public GameObject columnRocket;
+    public GameObject colorBomb;
+    
     private MatchFinder matchFinder; 
     private Board board;
-    private GameObject otherDot;
+    internal GameObject otherDot;
     private Vector2 firstTouchPosition;
     private Vector2 finalTouchPosition;
     private Vector2 tempPosition;
-    public float swipeAngle = 0;
-    public float swipeResist = 1f;
+    
 
 
     void Start()
     {
+        isColumnRocket = false;
+        isRowRocket = false;
+        
         board = FindObjectOfType<Board>();
         matchFinder = FindObjectOfType<MatchFinder>();
+        
         /*targetX = (int)transform.position.x;
         targetY = (int)transform.position.y;
         row = targetY;
@@ -36,14 +51,20 @@ public class DotController : MonoBehaviour
         previousRow = row;
         previousColumn = column;*/
     }
+    
+    //Testing powerups
+    private void OnMouseOver()
+    {
+        if (Input.GetMouseButtonDown(1))
+        {
+            isColorBomb = true;
+            GameObject bomb = Instantiate(colorBomb, transform.position, Quaternion.identity);
+            bomb.transform.parent = this.transform;
+        }
+    }
+
     void Update()
     {
-        //FindMatches();
-        if (isMatched)
-        {
-            SpriteRenderer mySprite = GetComponent<SpriteRenderer>();
-            mySprite.color = new Color(0f, 0f, 0f, .2f);
-        }
         targetX = column;
         targetY = row;
         //Swap in Rows
@@ -86,7 +107,19 @@ public class DotController : MonoBehaviour
 
     public IEnumerator CheckMoveCoroutine()
     {
+
+        if (isColorBomb)
+        {
+            matchFinder.MatchPiecesOfColor(otherDot.tag);
+            isMatched = true;
+        }else if (otherDot.GetComponent<DotController>().isColorBomb)
+        {
+            matchFinder.MatchPiecesOfColor(this.gameObject.tag);
+            otherDot.GetComponent<DotController>().isMatched = true;
+        }
+
         yield return new WaitForSeconds(.4f);
+        
         if (otherDot != null)
         {
             if (!isMatched && !otherDot.GetComponent<DotController>().isMatched)
@@ -96,12 +129,13 @@ public class DotController : MonoBehaviour
                 row = previousRow;
                 column = previousColumn;
                 yield return new WaitForSeconds(.5f);
+                board.currentDot = null;
                 board.currentState = GameState.MOVE;
             }else
             {
                 board.DestroyMatches();
             }
-            otherDot = null;
+            //otherDot = null;
         }
         
     }
@@ -134,6 +168,7 @@ public class DotController : MonoBehaviour
             //Debug.Log(swipeAngle);
             MovePieces();
             board.currentState = GameState.WAIT;
+            board.currentDot = this;
         }
         else
         {
@@ -179,30 +214,17 @@ public class DotController : MonoBehaviour
         StartCoroutine(CheckMoveCoroutine());
     }
 
-    //Old matchfinder, unused currently
-    private void FindMatches()
+    public void MakeRowRocket()
     {
-        if (column > 0 && column < board.width - 1)
-        {
-            GameObject leftDot1 = board.allDots[column - 1, row];
-            GameObject rightDot1 = board.allDots[column + 1, row];
-            if (leftDot1.CompareTag(this.gameObject.tag) && rightDot1.CompareTag(this.gameObject.tag))
-            {
-                leftDot1.GetComponent<DotController>().isMatched = true;
-                rightDot1.GetComponent<DotController>().isMatched = true;
-                isMatched = true;
-            }
-        }
-        if (row > 0 && row < board.height - 1)
-        {
-            GameObject topDot1 = board.allDots[column, row + 1 ];
-            GameObject downDot1 = board.allDots[column, row - 1];
-            if (topDot1.CompareTag(this.gameObject.tag) && downDot1.CompareTag(this.gameObject.tag))
-            {
-                topDot1.GetComponent<DotController>().isMatched = true;
-                downDot1.GetComponent<DotController>().isMatched = true;
-                isMatched = true;
-            }
-        }
+        isRowRocket = true;
+        GameObject rocket = Instantiate(rowRocket, transform.position, Quaternion.identity);
+        rocket.transform.parent = this.transform;
+    }
+
+    public void MakeColumnRocket()
+    {
+        isColumnRocket = true;
+        GameObject rocket = Instantiate(columnRocket, transform.position, Quaternion.identity);
+        rocket.transform.parent = this.transform;
     }
 }
