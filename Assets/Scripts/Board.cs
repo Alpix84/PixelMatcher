@@ -23,7 +23,6 @@ public class Board : MonoBehaviour
     private MatchFinder matchFinder;
 
     
-    // Start is called before the first frame update
     void Start()
     {
         matchFinder = FindObjectOfType<MatchFinder>();
@@ -39,7 +38,7 @@ public class Board : MonoBehaviour
             for (int j = 0; j < height; j++)
             {
                 Vector2 tempPosition = new Vector2(i, j + offset);
-                GameObject backgroundTile = Instantiate(tilePrefab, tempPosition, Quaternion.identity) as GameObject;
+                GameObject backgroundTile = Instantiate(tilePrefab, tempPosition, Quaternion.identity);
                 backgroundTile.transform.parent = this.transform;
                 backgroundTile.name = $"( {i}, {j} )";
                 int dotToUse = Random.Range(0, dots.Length);
@@ -50,8 +49,7 @@ public class Board : MonoBehaviour
                     dotToUse = Random.Range(0, dots.Length);
                     retries++;
                 }
-                retries = 0;
-                
+
                 GameObject dot = Instantiate(dots[dotToUse], tempPosition, Quaternion.identity);
                 dot.GetComponent<DotController>().row = j;
                 dot.GetComponent<DotController>().column = i;
