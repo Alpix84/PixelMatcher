@@ -126,7 +126,8 @@ MonoBehaviour:
   isColorBomb: 0
   isColumnRocket: 0
   isRowRocket: 0
+  isBigBomb: 0
   rowRocket: {fileID: 8616596897589046366, guid: 4269212de722df44d88e93cae94d0ce1, type: 3}
   columnRocket: {fileID: 645538585327010247, guid: 9cae800689b4b36469ea9ef60fc67eb7, type: 3}
   colorBomb: {fileID: 5722582723166418264, guid: 424b54558817faa4ca01fe924f732ea8, type: 3}
-  otherDot: {fileID: 0}
+  bigBomb: {fileID: 7171010794679424790, guid: 4b5570d6c05ce244fb8986fff8ac44b9, type: 3}

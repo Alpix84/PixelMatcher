@@ -23,9 +23,11 @@ public class DotController : MonoBehaviour
     public bool isColorBomb;
     public bool isColumnRocket;
     public bool isRowRocket;
+    public bool isBigBomb;
     public GameObject rowRocket;
     public GameObject columnRocket;
     public GameObject colorBomb;
+    public GameObject bigBomb;
     
     private MatchFinder matchFinder; 
     private Board board;
@@ -40,6 +42,8 @@ public class DotController : MonoBehaviour
     {
         isColumnRocket = false;
         isRowRocket = false;
+        isColorBomb = false;
+        isBigBomb = false;
         
         board = FindObjectOfType<Board>();
         matchFinder = FindObjectOfType<MatchFinder>();
@@ -57,9 +61,7 @@ public class DotController : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(1))
         {
-            isColorBomb = true;
-            GameObject bomb = Instantiate(colorBomb, transform.position, Quaternion.identity);
-            bomb.transform.parent = this.transform;
+            
         }
     }
 
@@ -107,7 +109,8 @@ public class DotController : MonoBehaviour
 
     public IEnumerator CheckMoveCoroutine()
     {
-
+        
+        //Powerups which works outside of matches
         if (isColorBomb)
         {
             matchFinder.MatchPiecesOfColor(otherDot.tag);
@@ -116,6 +119,13 @@ public class DotController : MonoBehaviour
         {
             matchFinder.MatchPiecesOfColor(this.gameObject.tag);
             otherDot.GetComponent<DotController>().isMatched = true;
+        }else if (isBigBomb)
+        {
+            matchFinder.MatchAdjacentPieces(this.column,this.row);
+        }else if (otherDot.GetComponent<DotController>().isBigBomb)
+        {
+            DotController otherDotController = otherDot.GetComponent<DotController>();
+            matchFinder.MatchAdjacentPieces(otherDotController.column,otherDotController.row);
         }
 
         yield return new WaitForSeconds(.4f);
@@ -226,5 +236,19 @@ public class DotController : MonoBehaviour
         isColumnRocket = true;
         GameObject rocket = Instantiate(columnRocket, transform.position, Quaternion.identity);
         rocket.transform.parent = this.transform;
+    }
+
+    public void MakeColorBomb()
+    {
+        isColorBomb = true;
+        GameObject cBomb = Instantiate(colorBomb, transform.position, Quaternion.identity);
+        cBomb.transform.parent = this.transform;
+    }
+
+    public void MakeBigBomb()
+    {
+        isBigBomb = true;
+        GameObject bomb = Instantiate(bigBomb, transform.position, Quaternion.identity);
+        bomb.transform.parent = this.transform;
     }
 }
